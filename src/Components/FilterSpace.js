@@ -8,6 +8,7 @@ import CardMedia from "@material-ui/core/CardMedia";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 
+
 const useStyles = makeStyles(theme => ({
     filterSpace: {
         position: 'relative',
@@ -20,7 +21,7 @@ const useStyles = makeStyles(theme => ({
         },
     },
     cardRoot:{
-        minWidth: 175
+        minWidth: 275
     },
     media:{
         height: 140
@@ -72,7 +73,7 @@ function FilterSpace() {
     })
     console.log(chipOutput);
     products.forEach(item =>{
-        cardOutput.push(<Grid item xs={4} key={item.name}><Card className={classes.cardRoot}>
+        cardOutput.push(<Grid item xs key={item.name}><Card className={classes.cardRoot}>
             <CardMedia className={classes.media} image={item.image} title={item.name}/>
             <CardContent>
                 <Typography gutterBottom variant="h5" component="h2">
