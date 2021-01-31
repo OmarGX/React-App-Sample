@@ -1,5 +1,4 @@
 import React, {useEffect,useState} from "react";
-import Chip from "@material-ui/core/Chip";
 import axios from "axios";
 import makeStyles from "@material-ui/core/styles/makeStyles";
 import Card from "@material-ui/core/Card";
@@ -7,7 +6,10 @@ import CardContent from "@material-ui/core/CardContent";
 import CardMedia from "@material-ui/core/CardMedia";
 import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
-
+import {Chip, ChipSet} from "@rmwc/chip"
+import '@material/chips/dist/mdc.chips.css';
+import '@rmwc/icon/icon.css';
+import '@material/ripple/dist/mdc.ripple.css';
 
 const useStyles = makeStyles(theme => ({
     filterSpace: {
@@ -37,17 +39,22 @@ function FilterSpace() {
     const classes = useStyles();
     const [products,setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [selected,setSelected] = useState({});
     const chipOutput = [];
     const cardOutput = [];
-    const handleClick = (e) => {
-        console.log(e)
+
+    const toggleSelected = e => {
+        setSelected(selected => ({
+            ...selected,
+            [e]: !selected[e]
+        }));
     }
 
     async function fetchCategoriesAndProducts() {
+        const dict = {};
         try{
             const response = await axios.get('https://gorest.co.in/public-api/products/');
-            let products = response.data;
-            products = response.data.data;
+            let products = response.data.data;
             let categoriesList = [];
             products.forEach(item =>{
                item.categories.forEach(value =>{
@@ -57,45 +64,53 @@ function FilterSpace() {
                })
             });
             setProducts(products);
-            setCategories(categoriesList)
+            setCategories(categoriesList);
+            categoriesList.forEach(value => {
+                dict[value]=false;
+            });
         }
         catch (e) {
             console.error(e)
         }
+        return dict
     }
 
     useEffect(() =>{
-        fetchCategoriesAndProducts();
+        fetchCategoriesAndProducts().then((data) => {
+            setSelected(data);
+        });
+        console.log(selected);
     }, []);
 
+    useEffect(() =>{
+        console.log(selected);
+    },[selected])
+
     categories.forEach(item =>{
-        chipOutput.push(<Chip key={item} size="medium" label={item} onClick={() => handleClick(item)} variant="outlined" color="primary"/> );
+        chipOutput.push(<Chip key={item} label={item} checkmark selected={selected[item]} onInteraction={() => {toggleSelected(item);}}/> );
     })
-    console.log(chipOutput);
-    products.forEach(item =>{
-        cardOutput.push(<Grid item xs key={item.name}><Card className={classes.cardRoot}>
-            <CardMedia className={classes.media} image={item.image} title={item.name}/>
-            <CardContent>
-                <Typography gutterBottom variant="h5" component="h2">
-                    {item.name}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" component="p">
-                    {item.description}
-                </Typography>
-            </CardContent>
-        </Card></Grid>);
-    });
     return(
-        <React.Fragment>
             <div className={classes.filterSpace}>
-                {chipOutput}
-                <Grid container className={classes.gridRoot} spacing={2}>
-                    {cardOutput}
-                </Grid>
+                <ChipSet filter>
+                    {chipOutput}
+                </ChipSet>
+                <React.Fragment>
+                    <Grid container className={classes.gridRoot} spacing={2}>
+                        {products.map((item) =>(<Grid item xs key={item.name}><Card className={classes.cardRoot}>
+                            <CardMedia className={classes.media} image={item.image} title={item.name}/>
+                            <CardContent>
+                                <Typography gutterBottom variant="h5" component="h2">
+                                    {item.name}
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary" component="p">
+                                    {item.description}
+                                </Typography>
+                            </CardContent>
+                        </Card></Grid>))}
+                    </Grid>
+                </React.Fragment>
             </div>
-        </React.Fragment>
     );
 
 }
 export default FilterSpace;
-
