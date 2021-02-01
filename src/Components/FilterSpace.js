@@ -40,15 +40,13 @@ function FilterSpace() {
     const [products,setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [selected,setSelected] = useState({});
-    const chipOutput = [];
-    const cardOutput = [];
-
     const toggleSelected = e => {
         setSelected(selected => ({
             ...selected,
             [e]: !selected[e]
         }));
     }
+
 
     async function fetchCategoriesAndProducts() {
         const dict = {};
@@ -79,24 +77,31 @@ function FilterSpace() {
         fetchCategoriesAndProducts().then((data) => {
             setSelected(data);
         });
-        console.log(selected);
     }, []);
 
-    useEffect(() =>{
-        console.log(selected);
-    },[selected])
-
-    categories.forEach(item =>{
-        chipOutput.push(<Chip key={item} label={item} checkmark selected={selected[item]} onInteraction={() => {toggleSelected(item);}}/> );
-    })
     return(
             <div className={classes.filterSpace}>
                 <ChipSet filter>
-                    {chipOutput}
+                    {categories.map((item)=>(<Chip key={item} label={item} checkmark selected={selected[item]}
+                                                   onInteraction={() => {toggleSelected(item)}}/>))}
                 </ChipSet>
                 <React.Fragment>
                     <Grid container className={classes.gridRoot} spacing={2}>
-                        {products.map((item) =>(<Grid item xs key={item.name}><Card className={classes.cardRoot}>
+                        {products.filter(item => {
+                            if(!Object.values(selected).includes(true)){
+                                return item
+                            } else {
+                                let selectedCat = [];
+                                Object.entries(selected).forEach(([key,value]) => {
+                                    if(value===true){
+                                        selectedCat.push(key);
+                                    }
+                                });
+                                if(Object.entries(item.categories).some(key => selectedCat.includes(key[1].name))){
+                                    return item
+                                }
+                            }
+                        }).map((item) =>(<Grid item xs key={item.id}><Card className={classes.cardRoot}>
                             <CardMedia className={classes.media} image={item.image} title={item.name}/>
                             <CardContent>
                                 <Typography gutterBottom variant="h5" component="h2">
